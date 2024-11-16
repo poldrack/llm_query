@@ -1,0 +1,14 @@
+[project]
+name = "llm-query"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=0.39.0",
+    "openai>=1.54.4",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
