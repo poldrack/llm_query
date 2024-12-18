@@ -12,18 +12,24 @@ class ChatClient(ABC):
 
 class OpenAIChatClient(ChatClient):
     def __init__(self, api_key: str, model: str = "gpt-4",
-                 system_msg: str = None, max_tokens: int = 16384):
+                 system_msg: str = None, max_tokens: int = 8000,
+                 temperature: float = 0.7):
         self.client = openai.OpenAI(api_key=api_key)
         self.model = model
         self.max_tokens = max_tokens
         self.system_msg = system_msg or "You are a helpful AI assistant."
+        self.temperature = temperature
         
     def chat(self, message: str) -> str:
-        response = self.client.chat.completions.create(
-            model=self.model,
-            max_tokens=self.max_tokens,
-            messages=[{"role": "user", "content": message}]
-        )
+        kwargs = {"model": self.model,
+                  "messages": [{"role": "system", "content": self.system_msg},
+                               {"role": "user", "content": message}]}
+        if self.model == "gpt-4":
+            kwargs["max_completion_tokens"] = self.max_tokens
+        else:
+            kwargs["max_tokens"] = self.max_tokens
+        kwargs["temperature"] = self.temperature
+        response = self.client.chat.completions.create(**kwargs)
         return response.choices[0].message.content
     
     # ala https://platform.openai.com/docs/guides/batch
@@ -77,5 +83,10 @@ if __name__ == "__main__":
 
     api_key = os.environ.get("ANTHROPIC")
     client = ChatClientFactory.create_client("anthropic", api_key)
+    response = client.chat("Hello, how are you?")
+    print(response)
+
+    api_key = os.environ.get("OPENAI")
+    client = ChatClientFactory.create_client("openai", api_key)
     response = client.chat("Hello, how are you?")
     print(response)
